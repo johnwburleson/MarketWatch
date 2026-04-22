@@ -330,70 +330,7 @@
   .l-msg { color: #7080a0; flex: 1; line-height: 1.5; }
   .log-empty { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--muted); text-align: center; padding: 20px; }
 
-  /* ── SETUP GUIDE ── */
-  .setup-guide {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 18px 20px;
-    margin-bottom: 24px;
-  }
-  .guide-title { font-size: 0.85rem; font-weight: 700; color: var(--text); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
-  .guide-step { display: flex; gap: 14px; margin-bottom: 12px; align-items: flex-start; }
-  .step-num {
-    background: var(--accent);
-    color: #000;
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    font-weight: 700;
-    width: 22px; height: 22px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-    margin-top: 1px;
-  }
-  .step-content { flex: 1; }
-  .step-title { font-size: 0.78rem; font-weight: 700; margin-bottom: 3px; }
-  .step-desc { font-size: 0.7rem; color: var(--muted); line-height: 1.6; }
-  .step-desc a { color: var(--accent2); text-decoration: none; }
-  .step-desc a:hover { text-decoration: underline; }
-  .step-desc code {
-    background: rgba(255,255,255,0.06);
-    border: 1px solid var(--border);
-    padding: 1px 6px;
-    border-radius: 3px;
-    font-family: 'Space Mono', monospace;
-    font-size: 0.65rem;
-    color: var(--accent);
-  }
 
-  /* ── ALERT SETUP SECTION ── */
-  .alert-setup {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 18px 20px;
-    margin-bottom: 24px;
-  }
-  .alert-setup-title { font-size: 0.85rem; font-weight: 700; color: var(--text); margin-bottom: 14px; }
-  .alert-method { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
-  .alert-method:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-  .method-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .method-badge {
-    font-family: 'Space Mono', monospace;
-    font-size: 0.56rem;
-    padding: 2px 8px;
-    border-radius: 99px;
-    background: rgba(53,200,241,0.12);
-    color: var(--accent2);
-    border: 1px solid rgba(53,200,241,0.2);
-    font-weight: 700;
-  }
-  .method-name { font-size: 0.78rem; font-weight: 700; }
-  .method-desc { font-size: 0.68rem; color: var(--muted); line-height: 1.65; }
-  .method-desc a { color: var(--accent2); text-decoration: none; }
-  .method-desc a:hover { text-decoration: underline; }
-  .method-desc code { background: rgba(255,255,255,0.06); border: 1px solid var(--border); padding: 1px 6px; border-radius: 3px; font-family: 'Space Mono', monospace; font-size: 0.62rem; color: var(--accent); }
 
   /* ── FOOTER ── */
   footer {
@@ -516,92 +453,7 @@
   </div>
 </div>
 
-<!-- SETUP GUIDE -->
-<div class="setup-guide">
-  <div class="guide-title">🚀 GitHub Pages Setup Guide</div>
 
-  <div class="guide-step">
-    <div class="step-num">1</div>
-    <div class="step-content">
-      <div class="step-title">Create a GitHub Account</div>
-      <div class="step-desc">Go to <a href="https://github.com" target="_blank">github.com</a> and sign up for a free account if you don't have one.</div>
-    </div>
-  </div>
-
-  <div class="guide-step">
-    <div class="step-num">2</div>
-    <div class="step-content">
-      <div class="step-title">Create a New Repository</div>
-      <div class="step-desc">Click the <code>+</code> icon → New repository. Name it <code>watchdesk</code>. Set it to Public. Check "Add a README file". Click Create repository.</div>
-    </div>
-  </div>
-
-  <div class="guide-step">
-    <div class="step-num">3</div>
-    <div class="step-content">
-      <div class="step-title">Upload This File</div>
-      <div class="step-desc">In your new repo, click <code>Add file</code> → <code>Upload files</code>. Drag and drop this HTML file. <strong>Rename it to <code>index.html</code> before uploading</strong> (GitHub Pages serves index.html as the homepage). Commit the file.</div>
-    </div>
-  </div>
-
-  <div class="guide-step">
-    <div class="step-num">4</div>
-    <div class="step-content">
-      <div class="step-title">Enable GitHub Pages</div>
-      <div class="step-desc">Go to your repo → Settings → Pages (left sidebar). Under "Source", select <code>Deploy from a branch</code>. Choose <code>main</code> branch, <code>/ (root)</code> folder. Click Save. Wait ~60 seconds.</div>
-    </div>
-  </div>
-
-  <div class="guide-step">
-    <div class="step-num">5</div>
-    <div class="step-content">
-      <div class="step-title">Your Dashboard is Live</div>
-      <div class="step-desc">Your URL will be <code>https://YOURUSERNAME.github.io/watchdesk</code> — bookmark it and open it every morning. Paste your Anthropic API key each session (it's not stored between sessions for security).</div>
-    </div>
-  </div>
-</div>
-
-<!-- ALERT SETUP INSTRUCTIONS -->
-<div class="alert-setup">
-  <div class="alert-setup-title">📬 Wiring Up Real Email + SMS Alerts</div>
-  <p style="font-size:0.7rem;color:var(--muted);margin-bottom:14px;line-height:1.65;">
-    The dashboard logs <em>what</em> would be alerted and <em>where</em>. To actually deliver messages, connect one of these free services. Ask Claude to write the integration code once you have an account.
-  </p>
-
-  <div class="alert-method">
-    <div class="method-header">
-      <div class="method-badge">EMAIL</div>
-      <div class="method-name">SendGrid — Free tier: 100 emails/day</div>
-    </div>
-    <div class="method-desc">
-      Sign up at <a href="https://sendgrid.com" target="_blank">sendgrid.com</a>. Create an API key under Settings → API Keys.
-      Then ask Claude: <em>"Add real SendGrid email alerts to my WatchDesk dashboard using API key [YOUR KEY]"</em> and it will write the integration code.
-    </div>
-  </div>
-
-  <div class="alert-method">
-    <div class="method-header">
-      <div class="method-badge">SMS</div>
-      <div class="method-name">Twilio — Free trial: ~$15 credit included</div>
-    </div>
-    <div class="method-desc">
-      Sign up at <a href="https://twilio.com" target="_blank">twilio.com</a>. Get your Account SID, Auth Token, and a free Twilio phone number.
-      Then ask Claude: <em>"Add real Twilio SMS alerts to my WatchDesk dashboard"</em> and it will write the integration.
-      Note: Twilio requires a small server-side component (free on <a href="https://render.com" target="_blank">Render.com</a> or <a href="https://vercel.com" target="_blank">Vercel</a>) to keep your credentials secure.
-    </div>
-  </div>
-
-  <div class="alert-method">
-    <div class="method-header">
-      <div class="method-badge">EASIEST</div>
-      <div class="method-name">ntfy.sh — Free push notifications, no account needed</div>
-    </div>
-    <div class="method-desc">
-      Install the <a href="https://ntfy.sh" target="_blank">ntfy app</a> on your phone (iOS/Android). Pick a unique topic name like <code>watchdesk-yourname</code>.
-      The dashboard can push directly to your phone with zero backend setup. Ask Claude: <em>"Add ntfy.sh push notifications to my WatchDesk dashboard with topic [YOUR TOPIC]"</em>.
-    </div>
-  </div>
-</div>
 
 <!-- FOOTER -->
 <footer>
@@ -707,9 +559,15 @@ function saveApiKey() {
   }
   apiKey = val;
 
-  // Update UI
-  const section = document.getElementById('api-section');
-  section.classList.add('connected');
+  // Persist to localStorage so it survives page refreshes
+  try { localStorage.setItem('watchdesk_api_key', val); } catch(e) {}
+
+  applyConnectedUI();
+  addLog('SYSTEM', 'blue', 'API key connected and saved to browser — ready to scan.');
+}
+
+function applyConnectedUI() {
+  document.getElementById('api-section').classList.add('connected');
   const label = document.getElementById('api-label');
   label.textContent = '✅ CONNECTED';
   label.classList.add('ok');
@@ -725,9 +583,28 @@ function saveApiKey() {
   btn.disabled = true;
 
   document.getElementById('api-hint').innerHTML =
-    'API key active. Hit <strong style="color:var(--accent)">Run Full Scan</strong> to analyze your portfolio.';
+    'API key loaded from browser storage. Hit <strong style="color:var(--accent)">Run Full Scan</strong> to analyze your portfolio. ' +
+    '<span id="clear-key-link" style="color:var(--muted);cursor:pointer;text-decoration:underline;" onclick="clearApiKey()">Clear key</span>';
+}
 
-  addLog('SYSTEM', 'blue', 'API key connected — ready to scan.');
+function clearApiKey() {
+  try { localStorage.removeItem('watchdesk_api_key'); } catch(e) {}
+  apiKey = '';
+  document.getElementById('api-section').classList.remove('connected');
+  const label = document.getElementById('api-label');
+  label.textContent = '🔑 API KEY';
+  label.classList.remove('ok');
+  const input = document.getElementById('api-key-input');
+  input.value = '';
+  input.classList.remove('saved');
+  input.disabled = false;
+  const btn = document.getElementById('save-key-btn');
+  btn.textContent = 'Connect';
+  btn.classList.remove('ok');
+  btn.disabled = false;
+  document.getElementById('api-hint').innerHTML =
+    'Get your free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys → Create key. Your key is stored only in this browser and never sent anywhere except Anthropic\'s API.';
+  addLog('SYSTEM', 'blue', 'API key cleared from browser storage.');
 }
 
 // ─────────────────────────────────────────
@@ -737,6 +614,8 @@ function saveAlertConfig() {
   alertConfig.email = document.getElementById('email-input').value.trim();
   alertConfig.phone = document.getElementById('phone-input').value.trim();
   alertConfig.sensitivity = document.getElementById('sensitivity').value;
+  // Persist alert config to localStorage
+  try { localStorage.setItem('watchdesk_alert_config', JSON.stringify(alertConfig)); } catch(e) {}
   const s = document.getElementById('save-status');
   s.classList.add('show');
   setTimeout(() => s.classList.remove('show'), 2500);
@@ -1018,9 +897,31 @@ async function runFullScan() {
 }
 
 // ─────────────────────────────────────────
-//  INIT
+//  INIT — load saved settings from localStorage
 // ─────────────────────────────────────────
 buildCards();
+
+// Restore API key if previously saved
+try {
+  const savedKey = localStorage.getItem('watchdesk_api_key');
+  if (savedKey && savedKey.startsWith('sk-')) {
+    apiKey = savedKey;
+    applyConnectedUI();
+    addLog('SYSTEM', 'blue', 'API key restored from browser storage — ready to scan.');
+  }
+} catch(e) {}
+
+// Restore alert config if previously saved
+try {
+  const savedConfig = localStorage.getItem('watchdesk_alert_config');
+  if (savedConfig) {
+    const parsed = JSON.parse(savedConfig);
+    alertConfig = { ...alertConfig, ...parsed };
+    if (parsed.email) document.getElementById('email-input').value = parsed.email;
+    if (parsed.phone) document.getElementById('phone-input').value = parsed.phone;
+    if (parsed.sensitivity) document.getElementById('sensitivity').value = parsed.sensitivity;
+  }
+} catch(e) {}
 </script>
 </body>
 </html>
