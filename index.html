@@ -368,17 +368,18 @@
   </div>
 </header>
 
-<!-- STEP 1 — API KEY (always visible) -->
+<!-- API KEY (always visible) -->
 <div class="api-section" id="api-section">
   <div class="api-row">
     <div class="api-label" id="api-label">🔑 API KEY</div>
     <input type="password" id="api-key-input"
       placeholder="Paste your Anthropic API key here — starts with sk-ant-..." />
     <button id="save-key-btn" onclick="saveApiKey()">Connect</button>
+    <button id="clear-key-btn" onclick="clearApiKey()" title="Clear saved key and start over" style="background:transparent;border:1px solid var(--muted);color:var(--muted);padding:9px 14px;font-family:'Syne',sans-serif;font-weight:600;font-size:0.72rem;border-radius:4px;cursor:pointer;white-space:nowrap;transition:all 0.15s;" onmouseover="this.style.borderColor='var(--danger)';this.style.color='var(--danger)'" onmouseout="this.style.borderColor='var(--muted)';this.style.color='var(--muted)'">✕ Clear</button>
   </div>
   <div class="api-hint" id="api-hint">
     Get your free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>
-    → API Keys → Create key. Your key is stored only in this browser tab and never sent anywhere except Anthropic's API.
+    → API Keys → Create key. Your key is saved in this browser only and never sent anywhere except Anthropic's API.
   </div>
 </div>
 
@@ -553,13 +554,26 @@ let alertConfig = { email: '', phone: '', sensitivity: 'major' };
 // ─────────────────────────────────────────
 function saveApiKey() {
   const val = document.getElementById('api-key-input').value.trim();
-  if (!val.startsWith('sk-')) {
-    alert('Please paste a valid Anthropic API key.\nIt should start with sk-ant- or sk-');
+
+  // Clear any previous error styling
+  document.getElementById('api-key-input').style.borderColor = '';
+
+  if (!val) {
+    document.getElementById('api-key-input').style.borderColor = 'var(--danger)';
+    addLog('SYSTEM', 'red', 'No key entered — paste your Anthropic API key first.');
     return;
   }
+  if (!val.startsWith('sk-')) {
+    document.getElementById('api-key-input').style.borderColor = 'var(--danger)';
+    document.getElementById('api-hint').innerHTML =
+      '<span style="color:var(--danger)">⚠ That doesn\'t look like a valid key — it should start with <strong>sk-ant-</strong>. Try copying it again from <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent2)">console.anthropic.com</a>.</span>';
+    addLog('SYSTEM', 'red', 'Invalid API key format — must start with sk-ant-');
+    return;
+  }
+
   apiKey = val;
 
-  // Persist to localStorage so it survives page refreshes
+  // Persist to localStorage
   try { localStorage.setItem('watchdesk_api_key', val); } catch(e) {}
 
   applyConnectedUI();
@@ -574,6 +588,7 @@ function applyConnectedUI() {
 
   const input = document.getElementById('api-key-input');
   input.value = '••••••••••••••••••••••••••••••••';
+  input.style.borderColor = '';
   input.classList.add('saved');
   input.disabled = true;
 
@@ -583,28 +598,41 @@ function applyConnectedUI() {
   btn.disabled = true;
 
   document.getElementById('api-hint').innerHTML =
-    'API key loaded from browser storage. Hit <strong style="color:var(--accent)">Run Full Scan</strong> to analyze your portfolio. ' +
-    '<span id="clear-key-link" style="color:var(--muted);cursor:pointer;text-decoration:underline;" onclick="clearApiKey()">Clear key</span>';
+    'API key loaded from browser storage. ' +
+    '<strong style="color:var(--accent)">Ready to scan.</strong>';
 }
 
 function clearApiKey() {
+  // Wipe from localStorage
   try { localStorage.removeItem('watchdesk_api_key'); } catch(e) {}
   apiKey = '';
+
+  // Reset section styling
   document.getElementById('api-section').classList.remove('connected');
   const label = document.getElementById('api-label');
   label.textContent = '🔑 API KEY';
   label.classList.remove('ok');
+
+  // Re-enable input and clear it fully
   const input = document.getElementById('api-key-input');
   input.value = '';
+  input.style.borderColor = '';
   input.classList.remove('saved');
   input.disabled = false;
+  input.focus();
+
+  // Reset connect button
   const btn = document.getElementById('save-key-btn');
   btn.textContent = 'Connect';
   btn.classList.remove('ok');
   btn.disabled = false;
+
+  // Reset hint
   document.getElementById('api-hint').innerHTML =
-    'Get your free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys → Create key. Your key is stored only in this browser and never sent anywhere except Anthropic\'s API.';
-  addLog('SYSTEM', 'blue', 'API key cleared from browser storage.');
+    'Key cleared. Paste your correct key above, then hit <strong>Connect</strong>. ' +
+    'Get it at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a> → API Keys.';
+
+  addLog('SYSTEM', 'blue', 'API key cleared — paste your correct key to reconnect.');
 }
 
 // ─────────────────────────────────────────
