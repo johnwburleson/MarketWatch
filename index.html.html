@@ -1,0 +1,1026 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WatchDesk — AI Portfolio Monitor</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap');
+
+  :root {
+    --bg: #0a0c0f;
+    --surface: #111318;
+    --border: #1e2229;
+    --accent: #c8f135;
+    --accent2: #35c8f1;
+    --warn: #f1a135;
+    --danger: #f13535;
+    --green: #35f18a;
+    --text: #e8eaf0;
+    --muted: #5a6070;
+    --card: #13161d;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 24px 20px;
+    background-image:
+      radial-gradient(ellipse at 20% 0%, rgba(200,241,53,0.04) 0%, transparent 60%),
+      radial-gradient(ellipse at 80% 100%, rgba(53,200,241,0.04) 0%, transparent 60%);
+  }
+
+  /* ── HEADER ── */
+  header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 22px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+
+  .logo-title { font-size: 1.6rem; font-weight: 800; letter-spacing: -0.02em; }
+  .logo-title span { color: var(--accent); }
+  .logo-sub { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--muted); letter-spacing: 0.12em; margin-top: 3px; }
+
+  .header-right { display: flex; flex-direction: column; align-items: flex-end; gap: 6px; }
+
+  #scan-btn {
+    background: var(--accent);
+    color: #0a0c0f;
+    border: none;
+    padding: 11px 24px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 0.85rem;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s;
+    text-transform: uppercase;
+  }
+  #scan-btn:hover:not(:disabled) { background: #d4f94a; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(200,241,53,0.25); }
+  #scan-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+  #last-scan { font-family: 'Space Mono', monospace; font-size: 0.58rem; color: var(--muted); }
+
+  /* ── API KEY ── */
+  .api-section {
+    background: rgba(241,161,53,0.06);
+    border: 1px solid rgba(241,161,53,0.4);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 16px;
+    transition: all 0.3s;
+  }
+  .api-section.connected {
+    background: rgba(53,241,138,0.04);
+    border-color: rgba(53,241,138,0.3);
+  }
+
+  .api-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+
+  .api-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--warn);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    min-width: 95px;
+    font-weight: 700;
+  }
+  .api-label.ok { color: var(--green); }
+
+  #api-key-input {
+    flex: 1;
+    min-width: 220px;
+    background: var(--bg);
+    border: 1px solid rgba(241,161,53,0.45);
+    color: var(--text);
+    padding: 9px 12px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.72rem;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  #api-key-input:focus { border-color: var(--warn); }
+  #api-key-input.saved { border-color: rgba(53,241,138,0.5); color: var(--muted); }
+  #api-key-input::placeholder { color: var(--muted); }
+
+  #save-key-btn {
+    background: var(--warn);
+    color: #000;
+    border: none;
+    padding: 9px 18px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.15s;
+  }
+  #save-key-btn:hover:not(:disabled) { background: #f5b555; }
+  #save-key-btn.ok { background: var(--green); color: #000; }
+
+  .api-hint { font-family: 'Space Mono', monospace; font-size: 0.58rem; color: var(--muted); margin-top: 7px; line-height: 1.6; }
+  .api-hint a { color: var(--accent2); text-decoration: none; }
+  .api-hint a:hover { text-decoration: underline; }
+
+  /* ── ALERT CONFIG ── */
+  .alert-config {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 18px;
+    display: flex;
+    align-items: flex-end;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .cfg-section-label {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding-bottom: 4px;
+    white-space: nowrap;
+  }
+
+  .cfg-group { display: flex; flex-direction: column; gap: 4px; flex: 1; min-width: 150px; }
+  .cfg-group label { font-family: 'Space Mono', monospace; font-size: 0.56rem; color: var(--muted); letter-spacing: 0.06em; }
+  .cfg-group input, .cfg-group select {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 10px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.7rem;
+    border-radius: 4px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .cfg-group input:focus, .cfg-group select:focus { border-color: var(--accent); }
+  .cfg-group input::placeholder { color: var(--muted); }
+
+  .cfg-save-wrap { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+  #save-alerts-btn {
+    background: transparent;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+    padding: 8px 16px;
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 0.72rem;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  #save-alerts-btn:hover { background: rgba(200,241,53,0.1); }
+  .save-status { font-family: 'Space Mono', monospace; font-size: 0.56rem; color: transparent; min-height: 13px; }
+  .save-status.show { color: var(--green); }
+
+  /* ── SUMMARY BAR ── */
+  .summary-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 20px;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 18px;
+  }
+  .sum-stat { display: flex; flex-direction: column; gap: 2px; }
+  .sum-label { font-family: 'Space Mono', monospace; font-size: 0.54rem; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; }
+  .sum-value { font-family: 'Space Mono', monospace; font-size: 1rem; font-weight: 700; }
+  .vdivider { width: 1px; height: 30px; background: var(--border); }
+
+  /* ── PORTFOLIO SUMMARY ── */
+  #portfolio-summary {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: 8px;
+    padding: 14px 18px;
+    font-size: 0.78rem;
+    line-height: 1.75;
+    color: #8a95a8;
+    margin-bottom: 20px;
+    min-height: 52px;
+  }
+
+  /* ── STOCK CARDS ── */
+  .portfolio-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(275px, 1fr));
+    gap: 14px;
+    margin-bottom: 22px;
+  }
+
+  .stock-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 16px;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.25s, box-shadow 0.25s;
+  }
+  .stock-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: var(--muted);
+    transition: background 0.3s;
+  }
+  .stock-card.status-green::before { background: var(--green); }
+  .stock-card.status-yellow::before { background: var(--warn); }
+  .stock-card.status-red::before { background: var(--danger); }
+  .stock-card.status-green { border-color: rgba(53,241,138,0.18); }
+  .stock-card.status-yellow { border-color: rgba(241,161,53,0.2); }
+  .stock-card.status-red { border-color: rgba(241,53,53,0.22); box-shadow: 0 0 20px rgba(241,53,53,0.06); }
+
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 11px; }
+  .c-ticker { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.01em; }
+  .c-name { font-size: 0.62rem; color: var(--muted); margin-top: 2px; }
+
+  .status-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.56rem;
+    padding: 3px 9px;
+    border-radius: 99px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .b-green  { background: rgba(53,241,138,0.13); color: var(--green); }
+  .b-yellow { background: rgba(241,161,53,0.13); color: var(--warn); }
+  .b-red    { background: rgba(241,53,53,0.13);  color: var(--danger); }
+  .b-muted  { background: rgba(90,96,112,0.18);  color: var(--muted); }
+
+  .price-row { display: flex; align-items: baseline; gap: 9px; margin-bottom: 9px; }
+  .c-price { font-family: 'Space Mono', monospace; font-size: 1.4rem; font-weight: 700; }
+  .c-change { font-family: 'Space Mono', monospace; font-size: 0.68rem; font-weight: 700; }
+  .pos { color: var(--green); }
+  .neg { color: var(--danger); }
+  .neutral { color: var(--muted); }
+
+  .meta-row { display: flex; gap: 10px; margin-bottom: 11px; }
+  .meta-item { flex: 1; }
+  .m-label { font-family: 'Space Mono', monospace; font-size: 0.52rem; color: var(--muted); letter-spacing: 0.07em; text-transform: uppercase; margin-bottom: 2px; }
+  .m-value { font-family: 'Space Mono', monospace; font-size: 0.72rem; font-weight: 700; }
+
+  .analysis-box {
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 11px;
+    font-size: 0.7rem;
+    line-height: 1.65;
+    color: #8a95a8;
+    min-height: 60px;
+  }
+  .analysis-box.loading {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.6rem;
+    color: var(--muted);
+    animation: pulse 1.4s ease-in-out infinite;
+  }
+
+  .flags-row { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 9px; }
+  .flag { font-family: 'Space Mono', monospace; font-size: 0.54rem; padding: 2px 8px; border-radius: 3px; letter-spacing: 0.03em; }
+  .f-good   { background: rgba(53,241,138,0.09);  color: var(--green);   border: 1px solid rgba(53,241,138,0.18); }
+  .f-warn   { background: rgba(241,161,53,0.09);  color: var(--warn);    border: 1px solid rgba(241,161,53,0.18); }
+  .f-danger { background: rgba(241,53,53,0.09);   color: var(--danger);  border: 1px solid rgba(241,53,53,0.18); }
+  .f-info   { background: rgba(53,200,241,0.09);  color: var(--accent2); border: 1px solid rgba(53,200,241,0.18); }
+
+  @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:1} }
+
+  /* ── SCAN LOG ── */
+  .scan-log {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin-bottom: 24px;
+  }
+  .log-title { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 10px; }
+  .log-entry { display: flex; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border); font-family: 'Space Mono', monospace; font-size: 0.6rem; align-items: flex-start; }
+  .log-entry:last-child { border-bottom: none; }
+  .l-time { color: var(--muted); white-space: nowrap; min-width: 55px; }
+  .l-ticker { font-weight: 700; min-width: 50px; }
+  .l-ticker.green  { color: var(--green); }
+  .l-ticker.yellow { color: var(--warn); }
+  .l-ticker.red    { color: var(--danger); }
+  .l-ticker.blue   { color: var(--accent2); }
+  .l-msg { color: #7080a0; flex: 1; line-height: 1.5; }
+  .log-empty { font-family: 'Space Mono', monospace; font-size: 0.6rem; color: var(--muted); text-align: center; padding: 20px; }
+
+  /* ── SETUP GUIDE ── */
+  .setup-guide {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin-bottom: 24px;
+  }
+  .guide-title { font-size: 0.85rem; font-weight: 700; color: var(--text); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .guide-step { display: flex; gap: 14px; margin-bottom: 12px; align-items: flex-start; }
+  .step-num {
+    background: var(--accent);
+    color: #000;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    font-weight: 700;
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .step-content { flex: 1; }
+  .step-title { font-size: 0.78rem; font-weight: 700; margin-bottom: 3px; }
+  .step-desc { font-size: 0.7rem; color: var(--muted); line-height: 1.6; }
+  .step-desc a { color: var(--accent2); text-decoration: none; }
+  .step-desc a:hover { text-decoration: underline; }
+  .step-desc code {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    padding: 1px 6px;
+    border-radius: 3px;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    color: var(--accent);
+  }
+
+  /* ── ALERT SETUP SECTION ── */
+  .alert-setup {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 18px 20px;
+    margin-bottom: 24px;
+  }
+  .alert-setup-title { font-size: 0.85rem; font-weight: 700; color: var(--text); margin-bottom: 14px; }
+  .alert-method { margin-bottom: 16px; padding-bottom: 16px; border-bottom: 1px solid var(--border); }
+  .alert-method:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+  .method-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .method-badge {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.56rem;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: rgba(53,200,241,0.12);
+    color: var(--accent2);
+    border: 1px solid rgba(53,200,241,0.2);
+    font-weight: 700;
+  }
+  .method-name { font-size: 0.78rem; font-weight: 700; }
+  .method-desc { font-size: 0.68rem; color: var(--muted); line-height: 1.65; }
+  .method-desc a { color: var(--accent2); text-decoration: none; }
+  .method-desc a:hover { text-decoration: underline; }
+  .method-desc code { background: rgba(255,255,255,0.06); border: 1px solid var(--border); padding: 1px 6px; border-radius: 3px; font-family: 'Space Mono', monospace; font-size: 0.62rem; color: var(--accent); }
+
+  /* ── FOOTER ── */
+  footer {
+    text-align: center;
+    font-family: 'Space Mono', monospace;
+    font-size: 0.58rem;
+    color: var(--muted);
+    padding-top: 8px;
+    line-height: 1.8;
+  }
+
+  /* ── SPINNER ── */
+  .spinner { display: inline-block; width: 10px; height: 10px; border: 2px solid rgba(200,241,53,0.2); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin-right: 6px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── RESPONSIVE ── */
+  @media (max-width: 600px) {
+    body { padding: 16px 14px; }
+    .logo-title { font-size: 1.3rem; }
+    .portfolio-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header>
+  <div>
+    <div class="logo-title">WATCH<span>DESK</span></div>
+    <div class="logo-sub">AI PORTFOLIO MONITOR · 5 POSITIONS · POWERED BY CLAUDE</div>
+  </div>
+  <div class="header-right">
+    <button id="scan-btn" onclick="runFullScan()">⚡ Run Full Scan</button>
+    <div id="last-scan">No scan yet</div>
+  </div>
+</header>
+
+<!-- STEP 1 — API KEY (always visible) -->
+<div class="api-section" id="api-section">
+  <div class="api-row">
+    <div class="api-label" id="api-label">🔑 API KEY</div>
+    <input type="password" id="api-key-input"
+      placeholder="Paste your Anthropic API key here — starts with sk-ant-..." />
+    <button id="save-key-btn" onclick="saveApiKey()">Connect</button>
+  </div>
+  <div class="api-hint" id="api-hint">
+    Get your free key at <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>
+    → API Keys → Create key. Your key is stored only in this browser tab and never sent anywhere except Anthropic's API.
+  </div>
+</div>
+
+<!-- ALERT DELIVERY CONFIG -->
+<div class="alert-config">
+  <div class="cfg-section-label">📬 Alert Delivery</div>
+  <div class="cfg-group">
+    <label>EMAIL</label>
+    <input type="email" id="email-input" placeholder="you@example.com" />
+  </div>
+  <div class="cfg-group">
+    <label>PHONE (SMS)</label>
+    <input type="tel" id="phone-input" placeholder="+1 555 000 0000" />
+  </div>
+  <div class="cfg-group">
+    <label>ALERT SENSITIVITY</label>
+    <select id="sensitivity">
+      <option value="all">All changes</option>
+      <option value="major" selected>Major changes only</option>
+      <option value="critical">Critical only</option>
+    </select>
+  </div>
+  <div class="cfg-save-wrap">
+    <button id="save-alerts-btn" onclick="saveAlertConfig()">Save</button>
+    <div class="save-status" id="save-status">✓ Saved</div>
+  </div>
+</div>
+
+<!-- SUMMARY BAR -->
+<div class="summary-bar">
+  <div class="sum-stat">
+    <div class="sum-label">Portfolio</div>
+    <div class="sum-value">5 Positions</div>
+  </div>
+  <div class="vdivider"></div>
+  <div class="sum-stat">
+    <div class="sum-label">🟢 Clear</div>
+    <div class="sum-value" id="s-green">—</div>
+  </div>
+  <div class="sum-stat">
+    <div class="sum-label">🟡 Watch</div>
+    <div class="sum-value" id="s-yellow">—</div>
+  </div>
+  <div class="sum-stat">
+    <div class="sum-label">🔴 Act</div>
+    <div class="sum-value" id="s-red">—</div>
+  </div>
+  <div class="vdivider"></div>
+  <div class="sum-stat">
+    <div class="sum-label">Alerts Fired</div>
+    <div class="sum-value" id="s-alerts">0</div>
+  </div>
+  <div class="sum-stat">
+    <div class="sum-label">Last Scan</div>
+    <div class="sum-value" id="s-time" style="font-size:0.7rem;color:var(--muted)">Never</div>
+  </div>
+</div>
+
+<!-- AI PORTFOLIO SUMMARY -->
+<div id="portfolio-summary">
+  Connect your API key and run a scan to get your AI portfolio briefing...
+</div>
+
+<!-- STOCK CARDS -->
+<div class="portfolio-grid" id="portfolio-grid"></div>
+
+<!-- SCAN LOG -->
+<div class="scan-log">
+  <div class="log-title">📋 Scan Log</div>
+  <div id="log-body">
+    <div class="log-empty">No scans yet — connect your API key and hit Run Full Scan.</div>
+  </div>
+</div>
+
+<!-- SETUP GUIDE -->
+<div class="setup-guide">
+  <div class="guide-title">🚀 GitHub Pages Setup Guide</div>
+
+  <div class="guide-step">
+    <div class="step-num">1</div>
+    <div class="step-content">
+      <div class="step-title">Create a GitHub Account</div>
+      <div class="step-desc">Go to <a href="https://github.com" target="_blank">github.com</a> and sign up for a free account if you don't have one.</div>
+    </div>
+  </div>
+
+  <div class="guide-step">
+    <div class="step-num">2</div>
+    <div class="step-content">
+      <div class="step-title">Create a New Repository</div>
+      <div class="step-desc">Click the <code>+</code> icon → New repository. Name it <code>watchdesk</code>. Set it to Public. Check "Add a README file". Click Create repository.</div>
+    </div>
+  </div>
+
+  <div class="guide-step">
+    <div class="step-num">3</div>
+    <div class="step-content">
+      <div class="step-title">Upload This File</div>
+      <div class="step-desc">In your new repo, click <code>Add file</code> → <code>Upload files</code>. Drag and drop this HTML file. <strong>Rename it to <code>index.html</code> before uploading</strong> (GitHub Pages serves index.html as the homepage). Commit the file.</div>
+    </div>
+  </div>
+
+  <div class="guide-step">
+    <div class="step-num">4</div>
+    <div class="step-content">
+      <div class="step-title">Enable GitHub Pages</div>
+      <div class="step-desc">Go to your repo → Settings → Pages (left sidebar). Under "Source", select <code>Deploy from a branch</code>. Choose <code>main</code> branch, <code>/ (root)</code> folder. Click Save. Wait ~60 seconds.</div>
+    </div>
+  </div>
+
+  <div class="guide-step">
+    <div class="step-num">5</div>
+    <div class="step-content">
+      <div class="step-title">Your Dashboard is Live</div>
+      <div class="step-desc">Your URL will be <code>https://YOURUSERNAME.github.io/watchdesk</code> — bookmark it and open it every morning. Paste your Anthropic API key each session (it's not stored between sessions for security).</div>
+    </div>
+  </div>
+</div>
+
+<!-- ALERT SETUP INSTRUCTIONS -->
+<div class="alert-setup">
+  <div class="alert-setup-title">📬 Wiring Up Real Email + SMS Alerts</div>
+  <p style="font-size:0.7rem;color:var(--muted);margin-bottom:14px;line-height:1.65;">
+    The dashboard logs <em>what</em> would be alerted and <em>where</em>. To actually deliver messages, connect one of these free services. Ask Claude to write the integration code once you have an account.
+  </p>
+
+  <div class="alert-method">
+    <div class="method-header">
+      <div class="method-badge">EMAIL</div>
+      <div class="method-name">SendGrid — Free tier: 100 emails/day</div>
+    </div>
+    <div class="method-desc">
+      Sign up at <a href="https://sendgrid.com" target="_blank">sendgrid.com</a>. Create an API key under Settings → API Keys.
+      Then ask Claude: <em>"Add real SendGrid email alerts to my WatchDesk dashboard using API key [YOUR KEY]"</em> and it will write the integration code.
+    </div>
+  </div>
+
+  <div class="alert-method">
+    <div class="method-header">
+      <div class="method-badge">SMS</div>
+      <div class="method-name">Twilio — Free trial: ~$15 credit included</div>
+    </div>
+    <div class="method-desc">
+      Sign up at <a href="https://twilio.com" target="_blank">twilio.com</a>. Get your Account SID, Auth Token, and a free Twilio phone number.
+      Then ask Claude: <em>"Add real Twilio SMS alerts to my WatchDesk dashboard"</em> and it will write the integration.
+      Note: Twilio requires a small server-side component (free on <a href="https://render.com" target="_blank">Render.com</a> or <a href="https://vercel.com" target="_blank">Vercel</a>) to keep your credentials secure.
+    </div>
+  </div>
+
+  <div class="alert-method">
+    <div class="method-header">
+      <div class="method-badge">EASIEST</div>
+      <div class="method-name">ntfy.sh — Free push notifications, no account needed</div>
+    </div>
+    <div class="method-desc">
+      Install the <a href="https://ntfy.sh" target="_blank">ntfy app</a> on your phone (iOS/Android). Pick a unique topic name like <code>watchdesk-yourname</code>.
+      The dashboard can push directly to your phone with zero backend setup. Ask Claude: <em>"Add ntfy.sh push notifications to my WatchDesk dashboard with topic [YOUR TOPIC]"</em>.
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  WATCHDESK · AI PORTFOLIO MONITOR · POWERED BY CLAUDE SONNET<br>
+  ⚠ This dashboard is for informational purposes only and does not constitute financial advice.<br>
+  Past performance does not guarantee future results. Always do your own research before investing.
+</footer>
+
+<script>
+// ─────────────────────────────────────────
+//  PORTFOLIO CONFIGURATION
+//  Edit these to update your positions
+// ─────────────────────────────────────────
+const PORTFOLIO = [
+  {
+    ticker: 'MVST',
+    name: 'Microvast Holdings',
+    type: 'EV Battery',
+    alloc: '$25',
+    entry: 1.97,
+    watch: [
+      'going concern warning from auditor Deloitte',
+      'backlog declined from $401M to $196M',
+      'Clarksville TN factory ramp to serial production',
+      'May 11 2026 earnings — key catalyst'
+    ],
+    risks: 'Auditor going concern flag, backlog halved year-over-year, Q4 missed by 27%, South Korean market regulatory disruption, cash trapped in non-US subsidiaries'
+  },
+  {
+    ticker: 'INUV',
+    name: 'Inuvo Inc',
+    type: 'AI AdTech',
+    alloc: '$20',
+    entry: 1.90,
+    watch: [
+      'Google services agreement renewal due June 2026',
+      'Q1 2026 revenue recovery — management guided double-digit growth',
+      'FreeWheel integration announced April 15 2026',
+      'New CEO Rob Buchner strategic review in progress'
+    ],
+    risks: 'Google contract non-renewal would be severe, Q4 revenue missed by 45% YoY, platform reset still underway, only 72 employees'
+  },
+  {
+    ticker: 'JOB',
+    name: 'GEE Group Inc',
+    type: 'Staffing / AI',
+    alloc: '$8',
+    entry: 0.23,
+    watch: [
+      'return to profitability targeted mid-fiscal 2026',
+      'potential acquisition news — Star Equity Holdings IOI received',
+      '$20.1M cash with zero debt vs market cap',
+      'delisting risk — sub $1 price for extended period'
+    ],
+    risks: 'Sub-$1 NYSE delisting risk, revenue declining 15% YoY, very illiquid micro-cap, staffing industry headwinds'
+  },
+  {
+    ticker: 'KEEL',
+    name: 'Keel Infrastructure',
+    type: 'AI Infrastructure',
+    alloc: '$23',
+    entry: 2.93,
+    watch: [
+      'AI data center contract wins',
+      'Cantor Fitzgerald maintains Overweight, $3 target',
+      'May 18 2026 earnings',
+      'national transport modernization contract won April 17'
+    ],
+    risks: 'Negative EBIT margin -38%, negative FCF -$73M per quarter, narrative-driven rebrand from Bitfarms BITF, no profitability path near-term'
+  },
+  {
+    ticker: 'KULR',
+    name: 'KULR Technology',
+    type: 'Energy / Defense',
+    alloc: '$30',
+    entry: 2.67,
+    watch: [
+      'gross margin recovery from collapsed 9% level',
+      'defense and aerospace battery contracts',
+      'Robinson Helicopter eR66 electric battery deal',
+      'Bitcoin treasury strategy risk vs core business'
+    ],
+    risks: 'Gross margin collapsed from 71% to 9% in one year, Q4 2025 revenue $2.86M vs $8M expected, Bitcoin speculation dilutes core battery story, high burn rate'
+  }
+];
+
+// ─────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────
+let apiKey = '';
+let results = {};
+let alertCount = 0;
+let alertConfig = { email: '', phone: '', sensitivity: 'major' };
+
+// ─────────────────────────────────────────
+//  API KEY
+// ─────────────────────────────────────────
+function saveApiKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  if (!val.startsWith('sk-')) {
+    alert('Please paste a valid Anthropic API key.\nIt should start with sk-ant- or sk-');
+    return;
+  }
+  apiKey = val;
+
+  // Update UI
+  const section = document.getElementById('api-section');
+  section.classList.add('connected');
+  const label = document.getElementById('api-label');
+  label.textContent = '✅ CONNECTED';
+  label.classList.add('ok');
+
+  const input = document.getElementById('api-key-input');
+  input.value = '••••••••••••••••••••••••••••••••';
+  input.classList.add('saved');
+  input.disabled = true;
+
+  const btn = document.getElementById('save-key-btn');
+  btn.textContent = 'Connected';
+  btn.classList.add('ok');
+  btn.disabled = true;
+
+  document.getElementById('api-hint').innerHTML =
+    'API key active. Hit <strong style="color:var(--accent)">Run Full Scan</strong> to analyze your portfolio.';
+
+  addLog('SYSTEM', 'blue', 'API key connected — ready to scan.');
+}
+
+// ─────────────────────────────────────────
+//  ALERT CONFIG
+// ─────────────────────────────────────────
+function saveAlertConfig() {
+  alertConfig.email = document.getElementById('email-input').value.trim();
+  alertConfig.phone = document.getElementById('phone-input').value.trim();
+  alertConfig.sensitivity = document.getElementById('sensitivity').value;
+  const s = document.getElementById('save-status');
+  s.classList.add('show');
+  setTimeout(() => s.classList.remove('show'), 2500);
+  addLog('SYSTEM', 'blue',
+    `Alert config saved — Email: ${alertConfig.email || 'not set'}, SMS: ${alertConfig.phone || 'not set'}, Sensitivity: ${alertConfig.sensitivity}`);
+}
+
+// ─────────────────────────────────────────
+//  BUILD CARDS
+// ─────────────────────────────────────────
+function buildCards() {
+  const grid = document.getElementById('portfolio-grid');
+  grid.innerHTML = '';
+  PORTFOLIO.forEach(p => {
+    const div = document.createElement('div');
+    div.className = 'stock-card';
+    div.id = `card-${p.ticker}`;
+    div.innerHTML = `
+      <div class="card-header">
+        <div>
+          <div class="c-ticker">${p.ticker}</div>
+          <div class="c-name">${p.name} · ${p.type}</div>
+        </div>
+        <div class="status-badge b-muted" id="badge-${p.ticker}">PENDING</div>
+      </div>
+      <div class="price-row">
+        <div class="c-price" id="price-${p.ticker}">$${p.entry.toFixed(2)}</div>
+        <div class="c-change neutral" id="chg-${p.ticker}">entry price</div>
+      </div>
+      <div class="meta-row">
+        <div class="meta-item">
+          <div class="m-label">Alloc</div>
+          <div class="m-value">${p.alloc}</div>
+        </div>
+        <div class="meta-item">
+          <div class="m-label">Entry</div>
+          <div class="m-value">$${p.entry.toFixed(2)}</div>
+        </div>
+        <div class="meta-item">
+          <div class="m-label">Est. P&amp;L</div>
+          <div class="m-value neutral" id="pnl-${p.ticker}">—</div>
+        </div>
+      </div>
+      <div class="analysis-box loading" id="analysis-${p.ticker}">Awaiting scan...</div>
+      <div class="flags-row" id="flags-${p.ticker}"></div>
+    `;
+    grid.appendChild(div);
+  });
+}
+
+// ─────────────────────────────────────────
+//  ANALYZE ONE STOCK via Claude API
+// ─────────────────────────────────────────
+async function analyzeStock(p) {
+  const prompt = `You are a sharp equity analyst reviewing a retail investor's position. Return ONLY valid JSON with no markdown, no code fences, no extra text.
+
+STOCK: ${p.ticker} — ${p.name} (${p.type})
+Entry price: $${p.entry}
+Allocation: ${p.alloc}
+Key watch points: ${p.watch.join(' | ')}
+Known risks: ${p.risks}
+Today's date: April 22, 2026
+
+Required JSON (exact structure, no deviations):
+{
+  "status": "green" or "yellow" or "red",
+  "price": estimated current market price as a decimal number,
+  "priceChange1D": estimated 1-day percent change as a decimal number (e.g. 2.3 or -1.5),
+  "headline": "single sentence under 18 words on the most important thing right now",
+  "analysis": "2-3 sentences of honest current fundamental assessment. Be direct and specific about what to watch.",
+  "flags": ["2 to 4 short flag labels, 1-4 words each"],
+  "flagTypes": ["one of: good, warn, danger, info — for each flag above"],
+  "alertWorthy": true or false,
+  "alertReason": "one sentence if alertWorthy is true, else empty string"
+}`;
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 600,
+      messages: [{ role: 'user', content: prompt }]
+    })
+  });
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(err.error?.message || `HTTP ${response.status}`);
+  }
+
+  const data = await response.json();
+  const raw = data.content?.[0]?.text || '{}';
+  const cleaned = raw.replace(/```json|```/g, '').trim();
+  return JSON.parse(cleaned);
+}
+
+// ─────────────────────────────────────────
+//  UPDATE ONE CARD
+// ─────────────────────────────────────────
+function updateCard(p, r) {
+  // Card border/color
+  const card = document.getElementById(`card-${p.ticker}`);
+  card.className = `stock-card status-${r.status}`;
+
+  // Badge
+  const badgeText = { green: 'CLEAR', yellow: 'WATCH', red: 'ACT NOW' };
+  const badgeClass = { green: 'b-green', yellow: 'b-yellow', red: 'b-red' };
+  const badge = document.getElementById(`badge-${p.ticker}`);
+  badge.textContent = badgeText[r.status] || '—';
+  badge.className = `status-badge ${badgeClass[r.status] || 'b-muted'}`;
+
+  // Price
+  if (r.price) {
+    document.getElementById(`price-${p.ticker}`).textContent = `$${Number(r.price).toFixed(2)}`;
+  }
+
+  // Daily change
+  if (r.priceChange1D !== undefined) {
+    const d = Number(r.priceChange1D);
+    const chg = document.getElementById(`chg-${p.ticker}`);
+    chg.textContent = `${d >= 0 ? '+' : ''}${d.toFixed(1)}% today`;
+    chg.className = `c-change ${d >= 0 ? 'pos' : 'neg'}`;
+  }
+
+  // P&L vs entry
+  if (r.price) {
+    const pct = ((r.price - p.entry) / p.entry * 100);
+    const pnl = document.getElementById(`pnl-${p.ticker}`);
+    pnl.textContent = `${pct >= 0 ? '+' : ''}${pct.toFixed(1)}%`;
+    pnl.className = `m-value ${pct >= 0 ? 'pos' : 'neg'}`;
+  }
+
+  // Analysis
+  const aBox = document.getElementById(`analysis-${p.ticker}`);
+  aBox.className = 'analysis-box';
+  aBox.textContent = r.analysis || 'Analysis unavailable.';
+
+  // Flags
+  const fRow = document.getElementById(`flags-${p.ticker}`);
+  fRow.innerHTML = '';
+  (r.flags || []).forEach((flag, i) => {
+    const type = (r.flagTypes || [])[i] || 'info';
+    const span = document.createElement('span');
+    span.className = `flag f-${type}`;
+    span.textContent = flag;
+    fRow.appendChild(span);
+  });
+}
+
+// ─────────────────────────────────────────
+//  LOG
+// ─────────────────────────────────────────
+function addLog(ticker, color, msg, isAlert = false) {
+  const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+  const body = document.getElementById('log-body');
+  if (body.querySelector('.log-empty')) body.innerHTML = '';
+  const div = document.createElement('div');
+  div.className = 'log-entry';
+  div.innerHTML = `
+    <span class="l-time">${time}</span>
+    <span class="l-ticker ${color}">${ticker}</span>
+    <span class="l-msg">${msg}</span>
+  `;
+  body.insertBefore(div, body.firstChild);
+  if (isAlert) {
+    alertCount++;
+    document.getElementById('s-alerts').textContent = alertCount;
+  }
+}
+
+// ─────────────────────────────────────────
+//  PORTFOLIO SUMMARY
+// ─────────────────────────────────────────
+async function getPortfolioSummary() {
+  const lines = PORTFOLIO.map(p => {
+    const r = results[p.ticker];
+    if (!r) return `${p.ticker}: not yet scanned`;
+    return `${p.ticker} (${p.type}): status=${r.status}, est. price=$${r.price}, key point="${r.headline}"`;
+  }).join('\n');
+
+  const response = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-20250514',
+      max_tokens: 200,
+      messages: [{
+        role: 'user',
+        content: `You are a direct equity analyst. In exactly 3 sentences, summarize the overall health, biggest risk, and most important action item across these 5 high-risk small-cap positions. Be specific, honest, and actionable. No fluff, no hedging.\n\nPositions:\n${lines}`
+      }]
+    })
+  });
+
+  const data = await response.json();
+  return data.content?.[0]?.text || 'Portfolio summary unavailable.';
+}
+
+// ─────────────────────────────────────────
+//  FULL SCAN
+// ─────────────────────────────────────────
+async function runFullScan() {
+  // Guard: API key required
+  if (!apiKey) {
+    const input = document.getElementById('api-key-input');
+    input.focus();
+    input.style.borderColor = 'var(--danger)';
+    setTimeout(() => input.style.borderColor = '', 2500);
+    addLog('SYSTEM', 'red', 'No API key — paste your Anthropic key in the field above first.');
+    return;
+  }
+
+  const btn = document.getElementById('scan-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>Scanning...';
+  document.getElementById('portfolio-summary').textContent = 'Analyzing all 5 positions — this takes about 15 seconds...';
+
+  let greens = 0, yellows = 0, reds = 0;
+
+  for (const p of PORTFOLIO) {
+    // Set card to loading state
+    const aBox = document.getElementById(`analysis-${p.ticker}`);
+    aBox.className = 'analysis-box loading';
+    aBox.textContent = `Scanning ${p.ticker}...`;
+    document.getElementById(`badge-${p.ticker}`).textContent = 'SCANNING';
+
+    try {
+      const r = await analyzeStock(p);
+      results[p.ticker] = r;
+      updateCard(p, r);
+
+      // Tally statuses
+      if (r.status === 'green') greens++;
+      else if (r.status === 'yellow') yellows++;
+      else reds++;
+
+      // Log result
+      const lc = r.status === 'green' ? 'green' : r.status === 'red' ? 'red' : 'yellow';
+      addLog(p.ticker, lc, r.headline || 'Scan complete.');
+
+      // Alert-worthy
+      if (r.alertWorthy && r.alertReason) {
+        const dest = [alertConfig.email, alertConfig.phone].filter(Boolean);
+        const destStr = dest.length ? `→ Would notify: ${dest.join(' + ')}` : '→ No alert destination set (add email/phone above)';
+        addLog('ALERT', lc,
+          `${r.status === 'red' ? '🚨' : '⚠️'} ${p.ticker}: ${r.alertReason} ${destStr}`,
+          true
+        );
+      }
+    } catch (e) {
+      document.getElementById(`analysis-${p.ticker}`).className = 'analysis-box';
+      document.getElementById(`analysis-${p.ticker}`).textContent = `Scan error: ${e.message}`;
+      addLog(p.ticker, 'yellow', `Scan error: ${e.message}`);
+    }
+  }
+
+  // Update summary counts
+  document.getElementById('s-green').textContent = greens;
+  document.getElementById('s-yellow').textContent = yellows;
+  document.getElementById('s-red').textContent = reds;
+
+  // Get portfolio-level AI summary
+  try {
+    const summary = await getPortfolioSummary();
+    document.getElementById('portfolio-summary').textContent = summary;
+  } catch (e) {
+    document.getElementById('portfolio-summary').textContent = 'Portfolio summary error: ' + e.message;
+  }
+
+  // Update timestamp
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) +
+    ' · ' + now.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  document.getElementById('last-scan').textContent = `Last scan: ${timeStr}`;
+  document.getElementById('s-time').textContent = timeStr;
+
+  btn.disabled = false;
+  btn.innerHTML = '⚡ Run Full Scan';
+}
+
+// ─────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────
+buildCards();
+</script>
+</body>
+</html>
